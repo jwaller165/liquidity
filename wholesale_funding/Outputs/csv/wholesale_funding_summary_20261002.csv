@@ -1,0 +1,26 @@
+as_of_date,row_type,primary_instrument_type,product_type,gl_bs_acct,gl_bs_acct_name,gl_bs_fee_acct,gl_bs_fee_acct_name,total_balance_mm,wtd_avg_yield
+2026-10-02,Detail,Brokered Deposit,Brokered NMD,2101509,Interest bearing deposits,2268035,Interest bearing deposits,5825965532.0,0.04107880190726874
+2026-10-02,Detail,Brokered Deposit,Brokered Term NMD,2101509,Interest bearing deposits,2268035,Interest bearing deposits,2050000000.0,0.04229069433685276
+2026-10-02,Detail,Brokered Deposit,Callable Brokered CD,2101632,Interest bearing deposits,,,64648907.0,0.03934475455654704
+2026-10-02,Detail,Brokered Deposit,Non-Callable Brokered CD,2101632,Interest bearing deposits,,,1477664627.0,0.04101834004812675
+2026-10-02,Subtotal,Brokered Deposit Subtotal,,,,,,9418279066.0,0.041321195751006234
+2026-10-02,Detail,FHLB Advance,Adjustable Rate Credit,2411007,Due To FHLB - Short Term,,,1250000000.0,0.04162378394694502
+2026-10-02,Detail,FHLB Advance,Daily Rate Credit,2410009,FHLB Pay,,,2550000000.0,0.0419457485915652
+2026-10-02,Detail,FHLB Advance,Fixed Rate Advance,2410009,FHLB Pay,,,1375009881.0,0.0397453665480241
+2026-10-02,Detail,FHLB Advance,Fixed Rate Advance,2411007,Due To FHLB - Short Term,,,237500000.0,0.04142105263157895
+2026-10-02,Detail,FHLB Advance,Floating Rate Advance,2411007,Due To FHLB - Short Term,,,4455672.0,0.0468
+2026-10-02,Subtotal,FHLB Advance Subtotal,,,,,,5416965553.0,0.04129390963089858
+2026-10-02,Detail,Fed Funds Purchased,Fed Funds Purchased,2321016,Federal funds purchased and other borrowings,,,,
+2026-10-02,Subtotal,Fed Funds Purchased Subtotal,,,,,,,
+2026-10-02,Detail,Long-Term Debt,Bank Senior Debt,2376069,Notes Payable with Trust Pref Sec,,,500000000.0,0.0557603034923988
+2026-10-02,Detail,Long-Term Debt,Bank Subordinated Debt,2376002,Notes Payable with Trust Pref Sec,,,500000000.0,0.0586388107616959
+2026-10-02,Detail,Long-Term Debt,HoldCo Senior Debt,2376069,Notes Payable with Trust Pref Sec,,,1250000000.0,0.05733582442691494
+2026-10-02,Detail,Long-Term Debt,HoldCo Subordinated Debt,2376002,Notes Payable with Trust Pref Sec,,,202967000.0,0.0752354567595158
+2026-10-02,Detail,Long-Term Debt,HoldCo Subordinated Debt,2400349,Notes Payable with Trust Pref Sec,,,300000000.0,0.0703105209773574
+2026-10-02,Detail,Long-Term Debt,Trust Preferred Securities,2400331,Notes Payable with Trust Pref Sec,,,164952000.0,0.061509754858992224
+2026-10-02,Detail,Long-Term Debt,Trust Preferred Securities,2400364,Notes Payable with Trust Pref Sec,,,101038000.0,0.060854516244328485
+2026-10-02,Detail,Long-Term Debt,Trust Preferred Securities,2420016,Notes Payable with Trust Pref Sec,,,20000000.0,0.0594608186825998
+2026-10-02,Subtotal,Long-Term Debt Subtotal,,,,,,3038957000.0,0.06012483920485016
+2026-10-02,Detail,Repo,Repo,2328128,Repurchase agreements,,,,
+2026-10-02,Subtotal,Repo Subtotal,,,,,,,
+2026-10-02,Grand Total,Grand Total,,,,,,17874201619.0,0.04450990633745723

@@ -1,0 +1,1059 @@
+version: 1.1
+
+source: finance.reporting.deposits
+
+dimensions:
+  - expr: source.*
+
+measures:
+  - name: NFSE Insured Operational Deposits
+    expr: |-
+      SUM(source.op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type <> 'Brokered'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type <> 'FSE'
+      )
+    comment: "Insured operational deposits for non-FSE counterparties. Uses op_balance\
+      \ where ops_flag=Y, wholesale, fully insured, non-brokered, no collateral, counterparty\
+      \ not FSE."
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Insured Operational Deposits
+    expr: |-
+      SUM(source.op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type <> 'Brokered'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type = 'FSE'
+      )
+    comment: "Insured operational deposits for FSE counterparties. Uses op_balance\
+      \ where ops_flag=Y, wholesale, fully insured, non-brokered, no collateral, counterparty=FSE."
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Uninsured Operational Deposits
+    expr: |-
+      SUM(source.op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type <> 'Brokered'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type <> 'FSE'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Uninsured Excess Operational Deposits
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type <> 'Brokered'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type <> 'FSE'
+      )
+    comment: "Non-operational balance portion on operational accounts (ops_flag=Y)\
+      \ for uninsured, non-FSE counterparties. This is the excess above the operational\
+      \ threshold, not a separate operational deposit."
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Insured Excess Operational Deposits
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type <> 'Brokered'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type <> 'FSE'
+      )
+    comment: "Non-operational balance portion on operational accounts (ops_flag=Y)\
+      \ for insured, non-FSE counterparties."
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Excess Operational Deposits
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'Y'
+          AND source.wholesale_flag = 'Y'
+          AND source.deposit_type NOT IN ('CDs', 'Brokered')
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type = 'FSE'
+      )
+    comment: Non-operational balance portion on operational accounts (ops_flag=Y)
+      for FSE counterparties. Filters on deposit_type (not product_type) to exclude
+      CDs and Brokered. No insured/uninsured split — captures both.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Unsecured Operational Deposits
+    expr: MEASURE(`NFSE Insured Operational Deposits`) + MEASURE(`FSE Insured Operational
+      Deposits`) + MEASURE(`NFSE Uninsured Operational Deposits`)
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Insured Traditional Wholesale TD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.collateral_flag = 'N'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Insured Traditional Wholesale TD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.collateral_flag = 'N'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Uninsured Traditional Wholesale TD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.collateral_flag = 'N'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Uninsured Traditional Wholesale TD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.collateral_flag = 'N'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Reciprocal Wholesale NMD
+    expr: |-
+      SUM(source.non_op_balance + COALESCE(source.ics_reciprocal_balance, 0)) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.counterparty_type <> 'FSE'
+      )
+    comment: Reciprocal wholesale NMD for non-FSE. Includes ics_reciprocal_balance
+      because NFSE ICS deposits have reciprocal balances placed at other banks.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Reciprocal Wholesale TD LT30
+    expr: |-
+      SUM(source.non_op_balance + COALESCE(source.ics_reciprocal_balance, 0)) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: NFSE Reciprocal Wholesale TD GT30
+    expr: |-
+      SUM(source.non_op_balance + COALESCE(source.ics_reciprocal_balance, 0)) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type <> 'FSE'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Reciprocal Wholesale NMD
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.counterparty_type = 'FSE'
+      )
+    comment: Reciprocal wholesale NMD for FSE. Uses non_op_balance only (no ics_reciprocal_balance)
+      because FSE ICS deposits do not carry reciprocal balances in this model.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Reciprocal Wholesale TD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type = 'FSE'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Reciprocal Wholesale TD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.counterparty_type = 'FSE'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: FSE Non-Operational NMD
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.ops_flag = 'N'
+          AND source.wholesale_flag = 'Y'
+          AND source.deposit_type NOT IN ('CDs', 'Brokered')
+          AND source.product_type <> 'ICS'
+          AND source.collateral_flag = 'N'
+          AND source.counterparty_type = 'FSE'
+      )
+    comment: "Non-operational NMD for FSE counterparties. Filters on deposit_type\
+      \ (not product_type) to exclude CDs and Brokered, and excludes ICS. No insured/uninsured\
+      \ split — captures both."
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Insured NMD LT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Insured NMD GT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Insured TD LT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Insured TD GT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Uninsured NMD LT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Uninsured NMD GT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Uninsured TD LT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Uninsured TD GT30
+    expr: |-
+      SUM(source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Insured NMD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Insured NMD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    comment: Added — was missing from original definition.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Insured TD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Insured TD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Uninsured NMD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Uninsured NMD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    comment: Added — was missing from original definition.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Uninsured TD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Reciprocal Uninsured TD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.ledger_balance) FILTER (
+        WHERE source.wholesale_flag = 'N'
+          AND source.ops_flag <> 'Y'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Insured NMD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Insured NMD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Insured TD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Insured TD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Uninsured NMD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Uninsured NMD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Uninsured TD LT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Traditional Uninsured TD GT30
+    expr: |-
+      SUM(source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type IN ('Traditional', 'Escrow', 'Sweep')
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Insured NMD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Insured NMD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    comment: Added — was missing from original definition.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Insured TD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Insured TD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'Y'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Uninsured NMD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Uninsured NMD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'NMD'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    comment: Added — was missing from original definition.
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Uninsured TD LT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'LT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Wholesale Reciprocal Uninsured TD GT30
+    expr: |-
+      SUM(COALESCE(source.ics_reciprocal_balance, 0) + source.non_op_balance) FILTER (
+        WHERE source.wholesale_flag = 'Y'
+          AND source.ops_flag = 'N'
+          AND source.fully_insured_flag = 'N'
+          AND source.product_type = 'ICS'
+          AND source.deposit_class = 'TIME'
+          AND source.maturity_bucket_short = 'GT30'
+      )
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: all
+      hide_group_separator: false
+      abbreviation: none
+
+  - name: Retail Traditional Insured LT30
+    expr: |-
+      MEASURE(`Retail Traditional Insured NMD LT30`)
+      + MEASURE(`Retail Traditional Insured TD LT30`)
+
+  - name: Retail Traditional Insured GT30
+    expr: |-
+      MEASURE(`Retail Traditional Insured NMD GT30`)
+      + MEASURE(`Retail Traditional Insured TD GT30`)
+
+  - name: Retail Traditional Uninsured LT30
+    expr: |-
+      MEASURE(`Retail Traditional Uninsured NMD LT30`)
+      + MEASURE(`Retail Traditional Uninsured TD LT30`)
+
+  - name: Retail Traditional Uninsured GT30
+    expr: |-
+      MEASURE(`Retail Traditional Uninsured NMD GT30`)
+      + MEASURE(`Retail Traditional Uninsured TD GT30`)
+
+  - name: Retail Reciprocal Insured LT30
+    expr: |-
+      MEASURE(`Retail Reciprocal Insured NMD LT30`)
+      + MEASURE(`Retail Reciprocal Insured TD LT30`)
+
+  - name: Retail Reciprocal Insured GT30
+    expr: |-
+      MEASURE(`Retail Reciprocal Insured NMD GT30`)
+      + MEASURE(`Retail Reciprocal Insured TD GT30`)
+
+  - name: Retail Reciprocal Uninsured LT30
+    expr: |-
+      MEASURE(`Retail Reciprocal Uninsured NMD LT30`)
+      + MEASURE(`Retail Reciprocal Uninsured TD LT30`)
+
+  - name: Retail Reciprocal Uninsured GT30
+    expr: |-
+      MEASURE(`Retail Reciprocal Uninsured NMD GT30`)
+      + MEASURE(`Retail Reciprocal Uninsured TD GT30`)
+
+  - name: Wholesale Traditional Insured LT30
+    expr: |-
+      MEASURE(`Wholesale Traditional Insured NMD LT30`)
+      + MEASURE(`Wholesale Traditional Insured TD LT30`)
+
+  - name: Wholesale Traditional Insured GT30
+    expr: |-
+      MEASURE(`Wholesale Traditional Insured NMD GT30`)
+      + MEASURE(`Wholesale Traditional Insured TD GT30`)
+
+  - name: Wholesale Traditional Uninsured LT30
+    expr: |-
+      MEASURE(`Wholesale Traditional Uninsured NMD LT30`)
+      + MEASURE(`Wholesale Traditional Uninsured TD LT30`)
+
+  - name: Wholesale Traditional Uninsured GT30
+    expr: |-
+      MEASURE(`Wholesale Traditional Uninsured NMD GT30`)
+      + MEASURE(`Wholesale Traditional Uninsured TD GT30`)
+
+  - name: Wholesale Reciprocal Insured LT30
+    expr: |-
+      MEASURE(`Wholesale Reciprocal Insured NMD LT30`)
+      + MEASURE(`Wholesale Reciprocal Insured TD LT30`)
+
+  - name: Wholesale Reciprocal Insured GT30
+    expr: |-
+      MEASURE(`Wholesale Reciprocal Insured NMD GT30`)
+      + MEASURE(`Wholesale Reciprocal Insured TD GT30`)
+
+  - name: Wholesale Reciprocal Uninsured LT30
+    expr: |-
+      MEASURE(`Wholesale Reciprocal Uninsured NMD LT30`)
+      + MEASURE(`Wholesale Reciprocal Uninsured TD LT30`)
+
+  - name: Wholesale Reciprocal Uninsured GT30
+    expr: |-
+      MEASURE(`Wholesale Reciprocal Uninsured NMD GT30`)
+      + MEASURE(`Wholesale Reciprocal Uninsured TD GT30`)
+
+  - name: FSE Reciprocal Wholesale LT30
+    expr: |-
+      MEASURE(`FSE Reciprocal Wholesale NMD`)
+      + MEASURE(`FSE Reciprocal Wholesale TD LT30`)
+
+  - name: FSE Reciprocal Wholesale GT30
+    expr: MEASURE(`FSE Reciprocal Wholesale TD GT30`)
+
+  - name: FSE Reciprocal Wholesale Total
+    expr: |-
+      MEASURE(`FSE Reciprocal Wholesale LT30`)
+      + MEASURE(`FSE Reciprocal Wholesale GT30`)
+
+  - name: FSE Non-Operational Total
+    expr: MEASURE(`FSE Non-Operational NMD`)
+
+  - name: FSE Operational Total
+    expr: |-
+      MEASURE(`FSE Insured Operational Deposits`)
+      + MEASURE(`FSE Excess Operational Deposits`)
+
+  - name: Total FSE LT30
+    expr: |-
+      MEASURE(`FSE Reciprocal Wholesale LT30`)
+      + MEASURE(`FSE Non-Operational NMD`)
+
+  - name: Total FSE GT30
+    expr: MEASURE(`FSE Reciprocal Wholesale GT30`)
+
+  - name: Total FSE Deposits
+    expr: |-
+      MEASURE(`FSE Operational Total`)
+      + MEASURE(`Total FSE LT30`)
+      + MEASURE(`Total FSE GT30`)
+
+materialization:
+  schedule: EVERY 12 HOURS
+  mode: relaxed
+  materialized_views:
+    - name: ODM
+      type: aggregated
+      dimensions:
+        - src_ac_tp_desc
+      measures:
+        - NFSE Insured Operational Deposits
+        - NFSE Uninsured Operational Deposits
+        - NFSE Uninsured Excess Operational Deposits
+      cluster_by:
+        auto: true
